@@ -9,7 +9,6 @@
 #  Aliases 
 # Override aliases here in '$ZDOTDIR/.zshrc' (already set in .zshenv)
 alias exa='eza'
-alias cd='z'
 # # Helpful aliases
 alias c='clear'                                                        # clear terminal
 # alias l='eza -lh --icons=auto'                                         # long list
@@ -44,7 +43,7 @@ alias lt='exa -aT --color=always --group-directories-first --icons --sort name' 
 alias l.='exa -ald --color=always --group-directories-first --icons .*' # show only dotfiles
 
 # Replace some more things with better alternatives
-alias cat='bat --style header --style snip --style changes --style numbers --style grid --style changes --style rule --color always'
+#alias cat='bat --style header --style snip --style changes --style numbers --style grid --style changes --style rule --color always'
 [ ! -x /usr/bin/yay ] && [ -x /usr/bin/paru ] && alias yay='paru'
 
 # Common use
@@ -110,7 +109,7 @@ export PATH=$HOME/.local/bin:/usr/bin:/usr/share/:/usr/state:/usr/local/bin:/bin
 #  This is your file 
 # Add your configurations here
 # export EDITOR=nvim
-export EDITOR=code
+#export EDITOR=code
 
 # unset -f command_not_found_handler # Uncomment to prevent searching for commands not found in package manager
 
@@ -353,7 +352,7 @@ SOFT_SERVE_INITIAL_ADMIN_KEYS=$HOME/.ssh/id_ed25519
 #export PATH=/User/nrd:/opt/homebrew/bin:/opt/homebrew/Cellar/fabric/:/Users/nrd/go//bin:/opt/homebrew/opt/go/libexec/bin:/Users/nrd/.local/bin:/Users/nrd/.oh-my-zsh/custom/plugins/git-open:/Users/nrd/bin:/usr/local/bin:/opt/homebrew/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/Library/Apple/usr/bin:/Applications/kitty.app/Contents/MacOS:/Users/nrd/.local/bin:/Users/nrd/.lmstudio/bin:/Users/nrd/.nvm/versions/node/v22.17.1/lib/node_modules:$PATH
 
 # Generated for envman. Do not edit.
-[ -s "$HOME/.config/envman/load.sh" ] && source "$HOME/.config/envman/load.sh"
+#[ -s "$HOME/.config/envman/load.sh" ] && source "$HOME/.config/envman/load.sh"
 
 eval "$(pkgx --quiet dev --shellcode)"  # https://github.com/pkgxdev/dev
 
@@ -362,7 +361,7 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
 # pnpm
-export PNPM_HOME="/Users/nrd/Library/pnpm"
+export PNPM_HOME="/.cache/node_modules/bin/pnpm"
 case ":$PATH:" in
   *":$PNPM_HOME:"*) ;;
   *) export PATH="$PNPM_HOME:$PATH" ;;
@@ -377,12 +376,45 @@ esac
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 #[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 #export PATH=/Users/nrd/.local/share/mise/installs/python/3.12.10/lib/python3.12/site-packages:/Users/nrd/Library/pnpm:/Users/nrd/.nvm/versions/node/v24.4.1/bin:/User/nrd:/opt/homebrew/bin:/opt/homebrew/Cellar/fabric/:/Users/nrd/go//bin:/opt/homebrew/opt/go/libexec/bin:/Users/nrd/.local/bin:/Users/nrd/.oh-my-zsh/custom/plugins/git-open:/Users/nrd/bin:/usr/local/bin:/opt/homebrew/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/Library/Apple/usr/bin:/Applications/kitty.app/Contents/MacOS:/Users/nrd/.local/bin:/Users/nrd/.lmstudio/bin:/Users/nrd/.nvm/versions/node/v22.17.1/lib/node_modules:/Users/nrd/go//bin:/opt/homebrew/opt/go/libexec/bin:/Users/nrd/.local/bin:/Users/nrd/.oh-my-zsh/custom/plugins/git-open:/Users/nrd/bin:/usr/local/bin:/opt/homebrew/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/Library/Apple/usr/bin:/Applications/iTerm.app/Contents/Resources/utilities:/Users/nrd/.local/bin:/Users/nrd/.lmstudio/bin:/Users/nrd/Downloads/GithubApps/quickemu:/Users/nrd/quickgui:/Users/nrd/quickgui/build/macos/build/Products/Release/quickgui.app/Contents/MacOS:/nix/var/nix/profiles/default/bin:/nix/store/0mbhwi1461n52jv98zqd40id44j2v6h4-darwin-rebuild/bin
+function cat() {
+  if command -v bat >/dev/null 2>&1; then
+    bat --style=auto --paging=auto --color=always "$@"
+  else
+    command cat "$@"
+  fi
+}
 
+function help() {
+  if command -v bat >/dev/null 2>&1; then
+    "$@" --help | bat --style=plain --paging=never --color=always
+  else
+    "$@" --help | cat
+  fi
+}
+#alias cat='bat --style auto --decorations auto --color always' 
+function tldr() {
+  if command -v bat >/dev/null 2>&1; then
+    command tldr "$@" | bat --style=plain --paging=never --color=always
+  else
+    command tldr "$@"
+  fi
+}
+function cht() {
+  if command -v bat >/dev/null 2>&1; then
+    curl -s "https://cht.sh/$*" | bat --style=plain --paging=never --color=always
+  else
+    curl -s "https://cht.sh/$*"
+  fi
+}
 # Added by Windsurf
 # jkk
 #export PATH="/Users/nrd/.codeium/windsurf/bin:/opt/metasploit-framework/bin:$PATH"
 #export PATH="$(brew --prefix)/opt/python@3.11/libexec/bin:$PATH"
-export MANPAGER="sh -c 'awk '\''{ gsub(/\x1B\[[0-9;]*m/, \"\", \$0); gsub(/.\x08/, \"\", \$0); print }'\'' | bat -lman --color=always'"
+#export MANPAGER="sh -c 'awk '\''{ gsub(/\x1B\[[0-9;]*m/, \"\", \$0); gsub(/.\x08/, \"\", \$0); print }'\'' | bat -lman --color=always'"
+export MANPAGER='sh -c "col -bx | bat --language=man --style=plain --paging=auto --color=always"' 
 BAT_THEME="Catppuccin Frappe"
 export EZA_CONFIG_DIR='/Users/nrd/.config/eza'
 eval "$(zoxide init zsh)"
+eval "$(mise activate zsh)"
+#
+

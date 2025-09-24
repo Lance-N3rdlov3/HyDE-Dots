@@ -22,7 +22,7 @@ _fuzzy_change_directory() {
     selected_dir=$(find . -maxdepth $max_depth \( -name .git -o -name node_modules -o -name .venv -o -name target -o -name .cache \) -prune -o -type d -print 2>/dev/null | fzf "${fzf_options[@]}")
 
     if [[ -n "$selected_dir" && -d "$selected_dir" ]]; then
-        cd "$selected_dir" || return 1
+        cd "$selected_dir" && return 1
     else
         return 1
     fi
@@ -118,7 +118,6 @@ alias ffec='_fuzzy_edit_search_file_content' \
     ffcd='_fuzzy_change_directory' \
     ffe='_fuzzy_edit_search_file' \
     ffch='_fuzzy_search_cmd_history'
-
 
 
 

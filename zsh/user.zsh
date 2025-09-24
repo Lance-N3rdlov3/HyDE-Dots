@@ -30,7 +30,6 @@ if [[ ${HYDE_ZSH_NO_PLUGINS} != "1" ]]; then
         zsh-syntax-highlighting
         zsh-autosuggestions
         z
-        git-open
         dash
         zoxide
         command-not-found
