@@ -47,7 +47,7 @@ alias l.='exa -ald --color=always --group-directories-first --icons .*' # show o
 [ ! -x /usr/bin/yay ] && [ -x /usr/bin/paru ] && alias yay='paru'
 
 # Common use
-#alias grubup="sudo update-grub"
+alias grubup="sudo update-grub"
 alias fixpacman="sudo rm /var/lib/pacman/db.lck"
 alias tarnow='tar -acf '
 alias untar='tar -zxvf '
@@ -63,9 +63,9 @@ alias upd='sudo pacman -Syyu --noconfirm'
 #alias ......='cd ../../../../..'
 alias dir='dir --color=auto'
 alias vdir='vdir --color=auto'
-alias grep='ripgrep --color=auto'
-alias fgrep='ripgrep -F --color=auto'
-alias egrep='ripgrep -E --color=auto'
+alias grep='rg --color=auto'
+alias fgrep='rg -F --color=auto'
+alias egrep='rg -E --color=auto'
 alias hw='hwinfo --short'                          # Hardware Info
 alias big="expac -H M '%m\t%n' | sort -h | nl"     # Sort installed packages according to size in MB (expac must be installed)
 alias gitpkg='pacman -Q | grep -i "\-git" | wc -l' # List amount of -git packages
@@ -104,7 +104,7 @@ eval "$(mcfly init zsh)"
 ## Run neofetch
 #neofetch
 #
-export PATH=$HOME/.local/bin:/usr/bin:/usr/share/:/usr/state:/usr/local/bin:/bin:/root/.local/bin:$HOME/bin:$HOME/.var:$HOME/.bin:$HOME/go/bin:$HOME/.pkgx/bin:$PATH
+export PATH=/bin:/sbin:$HOME/.local/bin:/usr/bin:/usr/share/:/usr/state:/usr/local/bin:/bin:/root/.local/bin:$HOME/bin:$HOME/.var:$HOME/.bin:$HOME/go/bin:$HOME/.pkgx/bin:$HOME/.local/bin:$HOME/.local/share/bin:$HOME/.local/share:$HOME/.local/lib:/usr/local/bin:/usr/share/bin:/usr/bin:/usr/sbin:$PATH
 #
 #  This is your file 
 # Add your configurations here
@@ -115,17 +115,19 @@ export PATH=$HOME/.local/bin:/usr/bin:/usr/share/:/usr/state:/usr/local/bin:/bin
 
 ## Plugins section: Enable fish style features
 # Use syntax highlighting
-#source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
 
 # Use autosuggestion
-#source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
 
 # Use history substring search
-#source /usr/share/zsh/plugins/zsh-history-substring-search/zsh-history-substring-search.zsh
+source /usr/share/zsh/plugins/zsh-history-substring-search/zsh-history-substring-search.zsh
 
 # Use fzf
-#source /usr/share/fzf/key-bindings.zsh
-#source /usr/share/fzf/completion.zsh
+source /usr/share/fzf/key-bindings.zsh
+source /usr/share/fzf/completion.zsh
+source <(fzf --zsh)
+
 
 # Arch Linux command-not-found support, you must have package pkgfile installed
 # https://wiki.archlinux.org/index.php/Pkgfile#.22Command_not_found.22_hook
@@ -290,7 +292,50 @@ if [[ -n "${key[Alt-Right]}" ]]; then
 	bindkey -M vicmd "${key[Alt-Right]}" forward-word
 fi
 
+function extract() {
+  # Check if a file was provided
+  if [ -z "$1" ]; then
+    echo "Usage: extract <archive_file>"
+    return 1
+  fi
 
+  # Check if the file exists
+  if [ ! -f "$1" ]; then
+    echo "Error: File '$1' not found."
+    return 1
+  fi
+
+  case "$1" in
+    # Tar archives
+    *.tar.bz2|*.tbz|*.tbz2) tar xvjf "$1" ;;
+    *.tar.gz|*.tgz) tar xvzf "$1" ;;
+    *.tar.xz|*.txz) tar xvJf "$1" ;;
+    *.tar.zst) tar --zstd -xvf "$1" ;;
+    *.tar.lz4) tar --lz4 -xvf "$1" ;;
+    *.tar) tar xvf "$1" ;;
+
+    # Individual compressed files
+    *.bz2) bunzip2 "$1" ;;
+    *.gz) gunzip "$1" ;;
+    *.xz) unxz "$1" ;;
+    *.zst) zstd -d "$1" ;;
+    *.lz4) lz4 -d "$1" ;;
+
+    # Other archives
+    *.zip) unzip "$1" ;;
+    *.rar) unrar x "$1" ;;
+    *.7z) 7z x "$1" ;;
+    *.Z) uncompress "$1" ;;
+    *.deb) ar x "$1" ;;
+    *.rpm) rpm2cpio "$1" | cpio -idmv ;;
+
+    # Fallback for unrecognized files
+    *)
+      echo "'$1' cannot be extracted with extract()"
+      return 1
+      ;;
+  esac
+}
 
 # Set personal aliases, overriding those provided by oh-my-zsh libs,
 # plugins, and themes. Aliases can be placed here, though oh-my-zsh
@@ -308,8 +353,11 @@ alias mysql=/usr/local/mysql/bin/mysql
 #alias ls='eza -a --grid --group-directories-first --sort name --icons=always --color=always'
 alias vim='nvim'
 alias vi='nvim'
-alias ra='TERM=xterm-256color ranger'
-alias raj='TERM=xterm-256color ranger --choosedir=$HOME/.rangerdir; LASTDIR=`cat $HOME/.rangerdir`; cd "$LASTDIR"'
+alias v='nvim'
+alias micro='nvim'
+alias nano='nvim'
+#alias ra='TERM=xterm-256color ranger'
+#alias raj='TERM=xterm-256color ranger --choosedir=$HOME/.rangerdir; LASTDIR=`cat $HOME/.rangerdir`; cd "$LASTDIR"'
 #alias lt="eza -aTd --icons=always --color=always --sort Name"
 alias reload="source ~/.config/zsh/.zshrc"
 alias cl="clear"
@@ -330,6 +378,11 @@ bindkey '^l'  forward-char          #control+l：向右移动一个单词
 bindkey '^k'  up-line-or-history    #control+k：向上翻看历史记录
 bindkey '^j'  down-line-or-history  #control+j：向下翻看历史记录
 
+zstyle ':omz:plugins:alias-finder' autoload yes # disabled by defaultzstyle 
+zstyle ':omz:plugins:alias-finder' longer yes # disabled by default
+zstyle ':omz:plugins:alias-finder' exact yes # disabled by default
+zstyle ':omz:plugins:alias-finder' cheaper yes # disabled by default
+
 
 export FZF_DEFAULT_OPTS=" \
 --color=bg+:#414559,bg:#303446,spinner:#F2D5CF,hl:#E78284 \
@@ -338,18 +391,14 @@ export FZF_DEFAULT_OPTS=" \
 --color=selected-bg:#51576D \
 --color=border:#737994"
 #starship theme
-eval "$(starship init zsh)"
+#eval "$(starship init zsh)"
 
 #test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh" || true
 export GOPATH=$HOME/go/
 #export GOROOT=$(brew --prefix go)/libexec
-export PATH=$GOPATH/bin:$GOROOT/bin:$HOME/.local/bin:$PATH
+export PATH=$GOPATH/bin:$GOROOT/bin:$HOME/.local/bin:$HOME/.mynav:$PATH
 
-SOFT_SERVE_INITIAL_ADMIN_KEYS=$HOME/.ssh/id_ed25519
-
-# Added by LM Studio CLI (lms)
-#export PATH="$PATH:/Users/nrd/.lmstudio/bin"
-#export PATH=/User/nrd:/opt/homebrew/bin:/opt/homebrew/Cellar/fabric/:/Users/nrd/go//bin:/opt/homebrew/opt/go/libexec/bin:/Users/nrd/.local/bin:/Users/nrd/.oh-my-zsh/custom/plugins/git-open:/Users/nrd/bin:/usr/local/bin:/opt/homebrew/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/Library/Apple/usr/bin:/Applications/kitty.app/Contents/MacOS:/Users/nrd/.local/bin:/Users/nrd/.lmstudio/bin:/Users/nrd/.nvm/versions/node/v22.17.1/lib/node_modules:$PATH
+export SOFT_SERVE_INITIAL_ADMIN_KEYS=$HOME/.ssh/id_ed25519
 
 # Generated for envman. Do not edit.
 #[ -s "$HOME/.config/envman/load.sh" ] && source "$HOME/.config/envman/load.sh"
@@ -366,55 +415,51 @@ case ":$PATH:" in
   *":$PNPM_HOME:"*) ;;
   *) export PATH="$PNPM_HOME:$PATH" ;;
 esac
-# pnpm end
-#export PATH=/Applications/*.app/Contents/MacOS/:$PATH
-#export PATH=~/.local/share/mise/installs/python/3.12.10/lib/python3.12/site-packages:/Users/nrd/Library/pnpm:/Users/nrd/.nvm/versions/node/v24.4.1/bin:/User/nrd:/opt/homebrew/bin:/opt/homebrew/Cellar/fabric/:/Users/nrd/go//bin:/opt/homebrew/opt/go/libexec/bin:/Users/nrd/.local/bin:/Users/nrd/.oh-my-zsh/custom/plugins/git-open:/Users/nrd/bin:/usr/local/bin:/opt/homebrew/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/Library/Apple/usr/bin:/Applications/kitty.app/Contents/MacOS:/Users/nrd/.local/bin:/Users/nrd/.lmstudio/bin:/Users/nrd/.nvm/versions/node/v22.17.1/lib/node_modules:/Users/nrd/go//bin:/opt/homebrew/opt/go/libexec/bin:/Users/nrd/.local/bin:/Users/nrd/.local/share/mise/installs/python/3.12/bin:/Users/nrd/.oh-my-zsh/custom/plugins/git-open:/Users/nrd/bin:/usr/local/bin:/opt/homebrew/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/Library/Apple/usr/bin:/Applications/iTerm.app/Contents/Resources/utilities:/Users/nrd/.local/bin:/Users/nrd/.lmstudio/bin
-#export PATH=/Users/nrd/.local/share/mise/installs/python/3.12.10/lib/python3.12/site-packages:/Users/nrd/Library/pnpm:/Users/nrd/.nvm/versions/node/v24.4.1/bin:/User/nrd:/opt/homebrew/bin:/opt/homebrew/Cellar/fabric/:/Users/nrd/go//bin:/opt/homebrew/opt/go/libexec/bin:/Users/nrd/.local/bin:/Users/nrd/.oh-my-zsh/custom/plugins/git-open:/Users/nrd/bin:/usr/local/bin:/opt/homebrew/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/Library/Apple/usr/bin:/Applications/kitty.app/Contents/MacOS:/Users/nrd/.local/bin:/Users/nrd/.lmstudio/bin:/Users/nrd/.nvm/versions/node/v22.17.1/lib/node_modules:/Users/nrd/go//bin:/opt/homebrew/opt/go/libexec/bin:/Users/nrd/.local/bin:/Users/nrd/.local/share/mise/installs/python/3.12/bin:/Users/nrd/.oh-my-zsh/custom/plugins/git-open:/Users/nrd/bin:/usr/local/bin:/opt/homebrew/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/Library/Apple/usr/bin:/Applications/iTerm.app/Contents/Resources/utilities:/Users/nrd/.local/bin:/Users/nrd/.lmstudio/bin:~/Downloads/GithubApps/quickemu
-#export PATH=/Users/nrd/.local/share/mise/installs/python/3.12.10/lib/python3.12/site-packages:/Users/nrd/Library/pnpm:/Users/nrd/.nvm/versions/node/v24.4.1/bin:/User/nrd:/opt/homebrew/bin:/opt/homebrew/Cellar/fabric/:/Users/nrd/go//bin:/opt/homebrew/opt/go/libexec/bin:/Users/nrd/.local/bin:/Users/nrd/.oh-my-zsh/custom/plugins/git-open:/Users/nrd/bin:/usr/local/bin:/opt/homebrew/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/Library/Apple/usr/bin:/Applications/kitty.app/Contents/MacOS:/Users/nrd/.local/bin:/Users/nrd/.lmstudio/bin:/Users/nrd/.nvm/versions/node/v22.17.1/lib/node_modules:/Users/nrd/go//bin:/opt/homebrew/opt/go/libexec/bin:/Users/nrd/.local/bin:/Users/nrd/.local/share/mise/installs/python/3.12/bin:/Users/nrd/.oh-my-zsh/custom/plugins/git-open:/Users/nrd/bin:/usr/local/bin:/opt/homebrew/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/Library/Apple/usr/bin:/Applications/iTerm.app/Contents/Resources/utilities:/Users/nrd/.local/bin:/Users/nrd/.lmstudio/bin:/Users/nrd/Downloads/GithubApps/quickemu:~/quickgui
-#export PATH=/Users/nrd/.local/share/mise/installs/python/3.12.10/lib/python3.12/site-packages:/Users/nrd/Library/pnpm:/Users/nrd/.nvm/versions/node/v24.4.1/bin:/User/nrd:/opt/homebrew/bin:/opt/homebrew/Cellar/fabric/:/Users/nrd/go//bin:/opt/homebrew/opt/go/libexec/bin:/Users/nrd/.local/bin:/Users/nrd/.oh-my-zsh/custom/plugins/git-open:/Users/nrd/bin:/usr/local/bin:/opt/homebrew/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/Library/Apple/usr/bin:/Applications/kitty.app/Contents/MacOS:/Users/nrd/.local/bin:/Users/nrd/.lmstudio/bin:/Users/nrd/.nvm/versions/node/v22.17.1/lib/node_modules:/Users/nrd/go//bin:/opt/homebrew/opt/go/libexec/bin:/Users/nrd/.local/bin:/Users/nrd/.local/share/mise/installs/python/3.12/bin:/Users/nrd/.oh-my-zsh/custom/plugins/git-open:/Users/nrd/bin:/usr/local/bin:/opt/homebrew/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/Library/Apple/usr/bin:/Applications/iTerm.app/Contents/Resources/utilities:/Users/nrd/.local/bin:/Users/nrd/.lmstudio/bin:/Users/nrd/Downloads/GithubApps/quickemu:/Users/nrd/quickgui:/Users/nrd/quickgui/build/macos/build/Products/Release/quickgui.app/Contents/MacOS
 
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
-#[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-#export PATH=/Users/nrd/.local/share/mise/installs/python/3.12.10/lib/python3.12/site-packages:/Users/nrd/Library/pnpm:/Users/nrd/.nvm/versions/node/v24.4.1/bin:/User/nrd:/opt/homebrew/bin:/opt/homebrew/Cellar/fabric/:/Users/nrd/go//bin:/opt/homebrew/opt/go/libexec/bin:/Users/nrd/.local/bin:/Users/nrd/.oh-my-zsh/custom/plugins/git-open:/Users/nrd/bin:/usr/local/bin:/opt/homebrew/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/Library/Apple/usr/bin:/Applications/kitty.app/Contents/MacOS:/Users/nrd/.local/bin:/Users/nrd/.lmstudio/bin:/Users/nrd/.nvm/versions/node/v22.17.1/lib/node_modules:/Users/nrd/go//bin:/opt/homebrew/opt/go/libexec/bin:/Users/nrd/.local/bin:/Users/nrd/.oh-my-zsh/custom/plugins/git-open:/Users/nrd/bin:/usr/local/bin:/opt/homebrew/bin:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/Library/Apple/usr/bin:/Applications/iTerm.app/Contents/Resources/utilities:/Users/nrd/.local/bin:/Users/nrd/.lmstudio/bin:/Users/nrd/Downloads/GithubApps/quickemu:/Users/nrd/quickgui:/Users/nrd/quickgui/build/macos/build/Products/Release/quickgui.app/Contents/MacOS:/nix/var/nix/profiles/default/bin:/nix/store/0mbhwi1461n52jv98zqd40id44j2v6h4-darwin-rebuild/bin
-function cat() {
-  if command -v bat >/dev/null 2>&1; then
-    bat --style=auto --paging=auto --color=always "$@"
-  else
-    command cat "$@"
-  fi
+
+
+ To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
+[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+tm ()
+{
+    local man_page;
+    man_page=$(man -k . | sort | fzf --prompt='Man Pages> ' --preview='echo {} | awk "{print \$1}" | xargs man' --preview-window=right:60%:wrap);
+    man "$(echo "$man_page" | awk '{print $1}')"
 }
 
+
+
+
+#
 function help() {
   if command -v bat >/dev/null 2>&1; then
-    "$@" --help | bat --style=plain --paging=never --color=always
+    "$@" --help | bat --style=auto --paging=auto --color=always
   else
     "$@" --help | cat
   fi
 }
-#alias cat='bat --style auto --decorations auto --color always' 
-function tldr() {
-  if command -v bat >/dev/null 2>&1; then
-    command tldr "$@" | bat --style=plain --paging=never --color=always
-  else
-    command tldr "$@"
-  fi
-}
-function cht() {
-  if command -v bat >/dev/null 2>&1; then
-    curl -s "https://cht.sh/$*" | bat --style=plain --paging=never --color=always
-  else
-    curl -s "https://cht.sh/$*"
-  fi
-}
+alias cat='bat --style auto --decorations auto --color always' 
 # Added by Windsurf
 # jkk
 #export PATH="/Users/nrd/.codeium/windsurf/bin:/opt/metasploit-framework/bin:$PATH"
 #export PATH="$(brew --prefix)/opt/python@3.11/libexec/bin:$PATH"
 #export MANPAGER="sh -c 'awk '\''{ gsub(/\x1B\[[0-9;]*m/, \"\", \$0); gsub(/.\x08/, \"\", \$0); print }'\'' | bat -lman --color=always'"
-export MANPAGER='sh -c "col -bx | bat --language=man --style=plain --paging=auto --color=always"' 
+export MANPAGER='nvim +Man!'
+#export MANPAGER='sh -c "col -bx | bat --language=man --style=plain --paging=auto --color=always"' 
 BAT_THEME="Catppuccin Frappe"
 export EZA_CONFIG_DIR='/Users/nrd/.config/eza'
 eval "$(zoxide init zsh)"
 eval "$(mise activate zsh)"
 #
+source $HOME/.config/zsh/user.zsh
+
+
+function y() {
+	local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
+	yazi "$@" --cwd-file="$tmp"
+	IFS= read -r -d '' cwd < "$tmp"
+	[ -n "$cwd" ] && [ "$cwd" != "$PWD" ] && builtin cd -- "$cwd"
+	rm -f -- "$tmp"
+}
+source ~/.config/zsh/fzf-marks.plugin.zsh 
 
